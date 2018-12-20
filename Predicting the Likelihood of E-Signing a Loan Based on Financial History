@@ -1,0 +1,100 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+dataset=pd.read_csv("financial_data.csv")
+dataset.head()
+dataset.shape
+dataset.describe()
+dataset.isna().any()
+
+dataset2=dataset.drop(columns=["entry_id","pay_schedule","e_signed"])
+fig=plt.figure(figsize=(15,50))
+plt.suptitle("Histogram of numerical columns",fontsize=20)
+#plt.legend()
+
+dataset2.shape
+
+#dataset2.shape[1]
+for i in range(dataset2.shape[1]):
+    plt.subplot(6,3,i+1)
+    f=plt.gca()
+    f.set_title(dataset2.columns.values[i])
+    
+    vals=np.size(dataset2.iloc[:,i].unique())
+    if vals >=100:
+        vals=100
+    
+    plt.hist(dataset2.iloc[:,i],bins=vals,color="#3F5D7D")
+plt.tight_layout(rect=[0,0.03,1,2])
+
+dataset2.corrwith(dataset.e_signed).plot.bar(figsize=(20,10),grid=True,title="correlation",rot=45)
+dataset=dataset.drop(columns=["months_employed"])
+dataset["Personal_account_months"]=(dataset.personal_account_m + (dataset.personal_account_y*12))
+dataset[["personal_account_y","personal_account_m","Personal_account_months"]].head()
+dataset.drop(columns= ["personal_account_y","personal_account_m"])
+
+
+dataset=pd.get_dummies(dataset)
+dataset.head()
+dataset=dataset.drop(columns="pay_schedule_semi-monthly")
+
+response=dataset.e_signed
+user=dataset.entry_id
+dataset.drop(columns=["e_signed","entry_id"])
+
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test =train_test_split(dataset,response,test_size=0.2)
+from sklearn.preprocessing import StandardScaler
+sc_x=StandardScaler()
+sc=sc_x.fit_transform(x_train,y_train)
+sc
+
+from sklearn.linear_model import LogisticRegression
+classifier=LogisticRegression(random_state=0,penalty="l1")
+classifier.fit(x_train,y_train)
+y_pred=classifier.predict(x_test)
+from sklearn.metrics import confusion_matrix,precision_score,f1_score,recall_score,accuracy_score
+cm=confusion_matrix(y_test,y_pred)
+cm
+acc=accuracy_score(y_test,y_pred)
+p=precision_score(y_test,y_pred)
+f=f1_score(y_test,y_pred)
+recall=recall_score(y_test,y_pred)
+models_result=pd.DataFrame([["Logistic_Regression(Lasso)",acc,p,f,recall]],columns=["Model","accuracy_score","precision_score","f1_score","recall_score"])
+models_result
+
+from sklearn.svm import SVC
+classifier=SVC(random_state=0,kernel="linear")
+classifier.fit(x_train,y_train)
+y_pred=classifier.predict(x_test)
+acc=accuracy_score(y_test,y_pred)
+p=precision_score(y_test,y_pred)
+f=f1_score(y_test,y_pred)
+recall=recall_score(y_test,y_pred)
+models_result1=pd.DataFrame([["SVM(Linear)",acc,p,f,recall]],columns=["Model","accuracy_score","precision_score","f1_score","recall_score"])
+models_result=models_result.append(models_result1,ignore_index="True")
+
+from sklearn.ensemble import RandomForestClassifier
+classifier=RandomForestClassifier(random_state=0,n_estimators=100,criterion="entropy")
+classifier.fit(x_train,y_train)
+y_pred=classifier.predict(x_test)
+acc=accuracy_score(y_test,y_pred)
+p=precision_score(y_test,y_pred)
+f=f1_score(y_test,y_pred)
+recall=recall_score(y_test,y_pred)
+models_result2=pd.DataFrame([["RandomForestClassifier(n=100)",acc,p,f,recall]],columns=["Model","accuracy_score","precision_score","f1_score","recall_score"])
+models_result=models_result.append(models_result2,ignore_index="True")
+models_result
+
+from sklearn.model_selection import cross_val_score
+accuracies=cross_val_score(estimator=classifier,X=x_train,y=y_train,cv=10)
+print("RandomForestClassifier accurcy using CrossValidation : %0.2f (+/- %0.2f)" %(accuracies.mean(),accuracies.std()*2))
+#final_result=pd.concat([y_test,user],axis=1).dropna()
+final_result["prediction"]=y_pred
+final_result=final_result[["entry_id","e_signed","prediction"]]
+final_result
+
+
