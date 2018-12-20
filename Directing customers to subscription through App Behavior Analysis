@@ -18,3 +18,4 @@ dataset2.corrwith(dataset.enrolled).plot.bar(figsize=(20,20),title="Correlation"
 
 corr=dataset2.corr()
 corr
+
