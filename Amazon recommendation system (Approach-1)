@@ -1,0 +1,67 @@
+#Imported all the Modules needed for the program
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style('white')
+%matplotlib inline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
+#Loaded the dataset into the DataFrame
+
+#column=['ProductId','UserID','Rate','Time']
+df=pd.read_csv('AMAZONNNNNNNN_2.csv')
+df.loc[:,['ProductId','UserId','Score','Time']]
+#df.head()
+
+#Grouped by the ProducrtID for the Score,found the count and sorted it
+df.groupby('ProductId')['Score'].count().sort_values(ascending=False).head()
+
+#Grouped by the ProducrtID for the Score,found the mean and sorted it
+df.groupby('ProductId')['Score'].mean().sort_values(ascending=False).head()
+
+#Created another DataFrame of only Products and Scores
+ratings = pd.DataFrame(df.groupby('ProductId')['Score'].mean())
+ratings.head()
+ratings['num of ratings'] = pd.DataFrame(df.groupby('ProductId')['Score'].count())
+ratings
+
+#Data Visulization of the Score
+
+plt.figure(figsize=(10,4))
+ratings['Score'].hist(bins=50)
+sns.jointplot(x='Score',y='num of ratings',data=ratings,alpha=0.5)
+
+#Created a Pivot table 
+
+complete_table = df.pivot_table(index='UserId',columns='ProductId',values='Score')
+complete_table
+
+#Took the count of all Product Ratings
+ratings.sort_values('num of ratings',ascending=False).head(10)
+
+B005K4Q1VI_user_ratings = complete_table['B005K4Q1VI']
+B00139TT72_user_ratings = complete_table['B00139TT72']
+
+B005K4Q1VI_user_ratings
+#Found the pairwise corellation of the complete table wrt 'B005K4Q1VI' product
+similar_to_B005K4Q1VI = complete_table.corrwith(B005K4Q1VI_user_ratings)
+similar_to_B00139TT72 = complete_table.corrwith(B00139TT72_user_ratings)
+
+#Created another DataFrame with respect to this particular B005K4Q1VI and its corellation with all the other products
+
+corr_B005K4Q1VI = pd.DataFrame(similar_to_B005K4Q1VI,columns=['Correlation'])
+corr_B005K4Q1VI.dropna(inplace=True)
+
+corr_B005K4Q1VI.sort_values('Correlation',ascending=False).head(10)
+#These are the Rercommendeted Items that wer pricted
+
+corr_B005K4Q1VI = corr_B005K4Q1VI.join(ratings['num of ratings'])
+corr_B005K4Q1VI.head()
+
+#Reommendated only those imilar items that have number of ratings Greater(>) than 100
+corr_B005K4Q1VI[corr_B005K4Q1VI['num of ratings']>100].sort_values('Correlation',ascending=False).head()
+
+corr_B005K4Q1VI
