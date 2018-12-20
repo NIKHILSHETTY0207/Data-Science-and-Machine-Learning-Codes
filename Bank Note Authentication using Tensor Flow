@@ -1,0 +1,47 @@
+import pandas as pd
+data=pd.read_csv("bank_note_data.csv")
+data.head()
+
+import seaborn as sns
+%matplotlib inline
+sns.countplot(x='Class',data=data)
+sns.pairplot(data,hue='Class')
+
+from sklearn.preprocessing import StandardScaler
+scaler=StandardScaler()
+scaler.fit(data.drop('Class',axis=1))
+scaled_features=scaler.transform(data.drop('Class',axis=1))
+scaled_features
+
+df_feat=pd.DataFrame(scaled_features,columns=data.columns[:-1])
+df_feat.head()
+
+x=df_feat
+y=data['Class']
+
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3)
+import tensorflow as tf
+
+feat_col=[]
+df_feat.columns
+for col in df_feat.columns:
+    feat_col.append(tf.feature_column.numeric_column(col))
+
+feat_col
+
+classifier=tf.estimator.DNNClassifier(hidden_units=[10,20,10],n_classes=2,feature_columns=feat_col)
+input_fun=tf.estimator.inputs.pandas_input_fn(x=x_train,y=y_train,batch_size=30,shuffle=True)
+prd_func=tf.estimator.inputs.pandas_input_fn(x=x_test,batch_size=len(x_test),shuffle=False)
+note_predictions=list(classifier.predict(input_fn=prd_func))
+
+note_predictions[0]
+final=[]
+for i in note_predictions:
+    final.append(i['class_ids'][0])
+    
+final
+
+from sklearn.metrics import confusion_matrix,classification_report
+print(confusion_matrix(y_test,final))
+print(classification_report(y_test,final))
