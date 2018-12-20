@@ -1,0 +1,60 @@
+from pandas_datareader import data
+import wbdata as wb
+
+import pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
+import numpy as np
+import datetime
+
+start=datetime.datetime(2015,1,1)
+end=datetime.datetime(2018,1,1)
+
+BAC = data.DataReader("BAC", "iex", start, end)
+C = data.DataReader("C", "iex", start, end)
+MS = data.DataReader("MS", "iex", start, end)
+GS = data.DataReader("GS", "iex", start, end)
+JPM = data.DataReader("JPM", "iex", start, end)
+WFC = data.DataReader("WFC", "iex", start, end)
+
+tickers=["BAC","C","MS","GS","JPM","WFC"]
+bank_stocks=pd.concat([BAC,C,MS,GS,JPM,WFC],axis=1,keys=tickers)
+bank_stocks.head()
+
+bank_stocks.columns.names=['Bank Ticker','Stock Info']
+bank_stocks
+
+for tick in tickers:
+    print(tick,bank_stocks[tick]["close"].max())
+#or 
+bank_stocks.xs(key="close",axis=1,level="Stock Info").max()   
+
+returns=pd.DataFrame()
+for tick in tickers:
+    returns[tick + " Return"]=bank_stocks[tick]["close"].pct_change()
+    
+returns
+sns.pairplot(returns[1:])
+returns.idxmin()
+returns.idxmax()
+
+returns.std()
+returns.ix["2015-01-01":"2015-12-31"]
+
+returns.ix["2015-01-01":"2015-12-31"].std()
+sns.distplot(returns.ix["2015-01-03":"2015-12-31"]["MS Return"])
+sns.distplot(returns.ix["2015-01-03":"2015-12-31"]["GS Return"])
+
+for tick in tickers:
+    bank_stocks[tick]["close"].plot(label=tick,figsize=(12,4))
+plt.legend()    
+
+bank_stocks.xs(key="close",axis=1,level="Stock Info").plot(figsize=(12,4))
+
+BAC.head()
+BAC["close"].ix["2015-01-02":"2016-01-02"].rolling(window =30).mean().plot(label="30 day moving average/mean",figsize=(12,4))
+BAC["close"].ix["2015-01-02":"2016-01-02"].plot(label="BAC close",figsize=(12,4))
+plt.legend()
+
+sns.heatmap(bank_stocks.xs(key="close",axis=1,level="Stock Info").corr(),annot=True)
