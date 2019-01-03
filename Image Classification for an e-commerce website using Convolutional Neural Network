@@ -66,5 +66,3 @@ from sklearn.metrics import classification_report
 
 class_report=classification_report(y_test,predicted_class)
 print(class_report)
-
-
