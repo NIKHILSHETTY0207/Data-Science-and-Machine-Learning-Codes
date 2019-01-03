@@ -1,0 +1,32 @@
+import seaborn as sns 
+import matplotlib.pyplot as plt
+%matplotlib inline
+sns.set_style("whitegrid")
+
+data=sns.load_dataset("titanic")
+data.head()
+
+#Jointplot Visualization
+sns.jointplot(x="fare",y="age",data=data)
+
+##Distribution plot Visualization
+sns.distplot(data["fare"],bins=15,kde=False)
+
+sns.boxplot(x="class",y="age",data=data)
+
+#Swarmplot Visualization
+sns.swarmplot(x="class",y="age",data=data)
+
+#Count Visualization
+sns.countplot(x="class",data=data)
+
+#Heatmap Visualization
+
+cm=data.corr()
+sns.heatmap(cm,cmap="coolwarm")
+
+#FacetGrid Visualization
+
+g=sns.FacetGrid(data=data,col="sex")
+g.map(plt.hist,"age")
+#g.map(sns.distplot,"age")
