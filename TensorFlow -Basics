@@ -1,0 +1,45 @@
+TensorFlow -Basics
+
+x=tf.constant("ABC")
+type(x)
+
+y=tf.constant(100)
+y
+z=tf.constant(200)
+
+sess=tf.Session()
+sess.run(x)
+#sess.run(y)
+
+with tf.Session() as sess:
+    print("ADD",sess.run(y+z))
+    print("MUL",sess.run(y*z))
+    
+#Direct ADD,MULL using tf
+
+add=tf.add(y,z)
+print(add)
+mult=tf.mul(z,y)
+
+y=tf.placeholder(tf.int32)
+
+z=tf.placeholder(tf.int32)
+
+d={x:20,y:30}
+
+import numpy as np
+a=np.array([[5.0,5.0]])
+a.shape
+
+b=np.array([[5.0],[5.0]])
+b.shape
+
+mat1=tf.constant(a)
+mat2=tf.constant(b)
+
+matrix_mult=tf.matmul(mat1,mat2)
+print(matrix_mult)
+
+with tf.Session() as sess:
+    result=sess.run(matrix_mult)
+    print(result)
