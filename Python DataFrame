@@ -1,0 +1,75 @@
+import numpy as np
+import pandas as pd
+
+d={"A":[1,2,np.nan],"B":[5,np.nan,7],"C":[1,2,3]}
+df=pd.DataFrame(d)
+df
+
+df.dropna()
+
+df.dropna(axis=1)
+
+df.dropna(thresh=2)
+
+df.fillna(value=0)
+
+df["B"].dropna()
+
+df["A"].fillna(value=df["A"].mean())
+
+d1={"A":[1,2,3],"B":[5,6,7],"A":[10,20,30],"B":[5,6,7]}
+df1=pd.DataFrame(d1)
+df1
+
+g=df1.groupby("A")
+g.sum()
+
+df1=pd.DataFrame({"key":["k0","k2","k3","k4"],"A1":["A0","A2","A3","A4"],"B1":["B0","B2","B3","B4"],"C1":["C0","C2","C3","C4"],"D1":["D0","D2","D3","D4"]},index={0,1,2,3})
+df1
+
+df2=pd.DataFrame({"key":["k0","k2","k3","k4"],"A2":["A5","A6","A7","A8"],"B2":["B5","B6","B7","B8"],"C2":["C5","C6","C7","C8"],"D2":["D5","D6","D7","D8"]},index={4,5,6,7})
+df2
+
+pd.concat([df1,df2])
+
+pd.merge(df1,df2,how="outer",on="key")
+
+df1=pd.DataFrame({"A1":["A0","A2","A3","A4"],"B1":["B0","B2","B3","B4"],"C1":["C0","C2","C3","C4"],"D1":["D0","D2","D3","D4"]},index={0,1,2,3})
+df1
+
+df2=pd.DataFrame({"A2":["A5","A6","A7","A8"],"B2":["B5","B6","B7","B8"],"C2":["C5","C6","C7","C8"],"D2":["D5","D6","D7","D8"]},index={4,5,6,7})
+df2
+
+df1.join(df2,how ="left")
+
+df=pd.DataFrame({"col1":[1,2,3,4],"col2":[444,555,666,444],"col3":['abc',"cde","efg","efg"],"col4":['abcd',"cdef","efgh","gchi"]})
+df
+
+df["col2"].unique()
+
+df["col2"].nunique()
+
+df["col2"].value_counts()
+
+df[df["col1"]>2]
+
+def times(x):
+    return x*2
+
+df["col1"].apply(times)
+
+df["col1"].apply(lambda x: x*2)
+
+df.drop(["col3","col2"],axis=1)
+
+df.drop("col3",axis=1)
+
+df.columns
+
+df.index
+
+df.sort_values("col2",ascending=False)
+
+df.isnull()
+
+df.pivot_table(values="col2",index=["col1","col3"],columns="col4")
