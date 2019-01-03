@@ -1,0 +1,126 @@
+#Importing the Text file (method-1)
+
+import nltk
+
+messages=[line.rstrip() for line in open("SMSSpamCollection")]
+messages[50]
+
+print(len(messages))
+for mess_no,message in enumerate(messages[:10]):
+    print(mess_no,message)
+    
+#Importing the Csv file (method-2)
+
+import pandas as pd
+import numpy as np
+
+df=pd.read_csv("SMSSpamCollection",sep="\t",names=["label","messages"])
+df.head()
+
+#Exploratory Data Analysis
+
+df.info()
+df.describe()
+
+df.groupby("label").describe()
+
+df["length"]=df["messages"].apply(len)
+df.head()
+
+#Data Visualization
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+df["length"].plot.hist(bins=30)
+
+df["length"].describe()
+
+df[df["length"]==910]["messages"].iloc[0]
+
+#Histogram Visualization
+
+df.hist(column="length",by="label", bins=60,figsize=(12,4))
+
+#Text Pre-processing(cleaning the text and processing it using a function) and Normalization(which is the stemming process which we have not done here)
+#remove punctuations
+#remove stopwords
+#remove list of clean words
+
+def text_process(mess):
+    nopunc=[char for char in mess if char not in string.punctuation]
+    nopunc="".join(nopunc)
+    nostop=[word for word in nopunc.split()if word.lower() not in stopwords.words("English") ]
+    return nostop
+
+df["messages"].head(5).apply(text_process)
+
+#Text Vectorization
+
+from sklearn.feature_extraction.text import CountVectorizer
+bow_transformer=CountVectorizer(analyzer=text_process).fit(df["messages"])
+
+message_bow=bow_transformer.transform(df["messages"])
+message_bow.nnz
+
+message_bow.shape
+
+sparsity=(100*message_bow.nnz/(message_bow.shape[0]*message_bow.shape[1]))
+print("The sparsity is :{}".format(sparsity))
+
+mesg4=df["messages"][3]
+mesg4
+
+bow4=bow_transformer.transform([mesg4])
+print(bow4)
+
+print(bow4.shape)
+
+print(bow_transformer.get_feature_names()[4068])
+print(bow_transformer.get_feature_names()[9554])
+
+#Text vectorization using TFIDF
+
+from sklearn.feature_extraction.text import TfidfTransformer
+Tfidf_transformer=TfidfTransformer().fit(message_bow)
+
+Tfidf4=Tfidf_transformer.transform(bow4)
+print(Tfidf4)
+
+Tfidf_transformer.idf_[bow_transformer.vocabulary_["University"]]
+
+Tfidf=Tfidf_transformer.transform(message_bow)
+
+#Training a model
+
+from sklearn.naive_bayes import MultinomialNB
+model=MultinomialNB().fit(Tfidf4,df["label"])
+
+single_pred=model.predict(bow4)[0]
+
+all_pred=model.predict(message_bow)
+all_pred
+
+#Train Test Split
+
+from sklearn.model_selection import train_test_split
+msg_train, msg_test, label_train, label_test =train_test_split(df['messages'], df['label'], test_size=0.2)
+
+#Creating a Data Pipeline
+
+
+from sklearn.pipeline import Pipeline
+
+pipeline = Pipeline([
+    ('bow', CountVectorizer(analyzer=text_process)),  # strings to token integer counts
+    ('tfidf', TfidfTransformer()),  # integer counts to weighted TF-IDF scores
+    ('classifier', MultinomialNB()),  # train on TF-IDF vectors w/ Naive Bayes classifier
+])
+
+pipeline.fit(msg_train,label_train)
+
+predictions=pipeline.predict(msg_test)
+from sklearn.metrics import classification_report
+class_report=classification_report(label_test,predictions)
+print(class_report)
