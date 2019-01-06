@@ -1,0 +1,69 @@
+#I will scrape the data from the web, parse the results using regular expressions, and visualize the data
+#Web Scraping Using Requests and Beautiful Soup (bs4)
+
+# requests for fetching html of website
+import requests
+
+# Make the request to a url
+r=requests.get("http://www.cleveland.com/metro/index.ssf/2017/12/case_western_reserve_university_president_barbara_snyders_base_salary_and_bonus_pay_tops_among_private_colleges_in_ohio.html")
+
+# Create soup from content of request
+c=r.content
+
+from bs4 import BeautifulSoup
+soup=BeautifulSoup(c)
+
+# Find the element on the webpage
+
+main_content=soup.find("div",attrs={"class":"entry-content"})
+main_content
+
+print(content)
+
+#The next step is to parse this information using regular expressions to identify the presidents, colleges, and salaries
+#Regular Expressions
+
+#I extracted the names of the presidents.
+import re
+
+
+name_pattern = re.compile(r'^([A-Z]{1}.+?)(?:,)', flags = re.M)
+names=name_pattern.findall(content)
+names
+
+#I extracted the names of the Colleges
+
+school_pattern = re.compile(r'(?:,|,\s)([A-Z]{1}.*?)(?:\s\(|:|,)')
+schools=school_pattern.findall(content)
+schools
+
+#I extract the salaries
+salary_pattern = re.compile(r'\$.+')
+salar_y = salary_pattern.findall(content)
+salar_y
+
+salary='$911,651'
+int("".join(salary[1:].split(',')))
+
+# Extract all the salaries and convert to integers
+salar_y = salary_pattern.findall(content)
+
+# List comprehension to convert strings to floats
+salar_y = [int(''.join(s[1:].split(','))) for s in salar_y]
+salar_y
+
+len(names)
+len(schools)
+len(salar_y)
+
+#Append information into a dataframe
+
+import pandas as pd
+
+df = pd.DataFrame({'salary': salar_y, 
+                   'President': names,
+                   'College': schools})
+                   
+#Data Visualization
+
+df.plot(kind='barh', x = 'President', y = 'salary')
