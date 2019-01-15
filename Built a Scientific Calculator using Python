@@ -1,0 +1,141 @@
+import math
+
+while(True):
+    print("Choose a maths operation\n\n0-ADDITION\n\n1-SUBTRACTION\n\n2-DIVISION\n\n3-MULTIPLICATION\n\n4-MODULO\n\n5-RAISING TO A POWER\n\n6-SQRT\n\n7-LOG\n\n8-SIN\n\n9-COSINE\n")
+    oper=input("\n Your option from the menu : ")
+    
+    if oper=="0":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1+val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+            
+    elif oper=="1":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1-val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+
+    elif oper=="2":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1/val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+
+    elif oper=="3":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1*val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+
+    elif oper=="4":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1%val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+            
+    elif oper=="5":
+        val1=float(input("Enter the first Value"))
+        val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(val1**val2))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+
+    elif oper=="6":
+        val1=float(input("Enter the first Value"))
+        #val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(math.sqrt(val1)))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+
+    elif oper=="7":
+        val1=float(input("Enter the first Value"))
+        #val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(math.log(val1,2)))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+            
+    elif oper=="8":
+        val1=float(input("Enter the Value in Degrees"))
+        #val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(math.sin((math.radians(val1)))))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+            
+    elif oper=="9":
+        val1=float(input("Enter the Value in Degrees"))
+        #val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(math.cos((math.radians(val1)))))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break 
+            
+    elif oper=="10":
+        val1=float(input("Enter the Value in Degrees"))
+        #val2=float(input("Enter the second value"))
+        print("\nThe result is :",str(math.tan((math.radians(val1)))))
+        
+        back=input("would you like to return to the main menu -(y/n)")
+        
+        if back=="y":
+            continue
+        else:
+            break
+            
+    else:
+        print("\nThis Option does not exit!!Please select the right option")
+        break
