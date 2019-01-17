@@ -1,0 +1,65 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import KMeans
+
+data=pd.read_csv("Countries.csv")
+data.head()
+
+data.info()
+
+data.describe()
+
+plt.scatter(data["Longitude"],data["Latitude"])
+
+cluster_parameters=data.iloc[:,1:3]
+cluster_parameters
+
+#Let us consider 3 clusters
+
+Kmeans=KMeans(3)
+
+Kmeans.fit(cluster_parameters)
+
+Kmeans.inertia_
+
+predicted_clusters=Kmeans.fit_predict(cluster_parameters)
+predicted_clusters
+
+data_copy=data.copy()
+data_copy.head()
+
+data_copy["Pred_clusters"]=predicted_clusters
+data_copy
+
+plt.scatter(data["Longitude"],data["Latitude"],c=data_copy["Pred_clusters"],cmap="rainbow")
+plt.xlim(-180,180)
+plt.ylim(-90,90)
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show
+
+#Let us consider 4 Clusters now
+
+Kmeans_4=KMeans(4)
+
+Kmeans_4=Kmeans_4.fit(cluster_parameters)
+wcss=Kmeans_4.inertia_
+wcss
+
+Kmeans_4_predicted=Kmeans_4.fit_predict(cluster_parameters)
+Kmeans_4_predicted
+
+data_copy1=data.copy()
+data_copy1.head()
+data_copy1["Pred_clusters"]=Kmeans_4_predicted
+data_copy1
+
+
+plt.scatter(data["Longitude"],data["Latitude"],c=data_copy1["Pred_clusters"],cmap="rainbow")
+plt.xlim(-180,180)
+plt.ylim(-90,90)
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show
