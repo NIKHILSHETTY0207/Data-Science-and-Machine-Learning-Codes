@@ -1,0 +1,220 @@
+import numpy as np
+from sklearn import preprocessing
+
+#Load the DATA in the trainand test datastets
+
+raw_csv_data=np.loadtxt("Audiobooks-data.csv",delimiter=",")
+raw_csv_data
+
+unscaled_inputs_all=raw_csv_data[:,:-1]
+targets_all=raw_csv_data[:,-1]
+
+print(unscaled_inputs_all)
+unscaled_inputs_all.shape
+
+print(targets_all)
+
+#Balance the dataset with the numbers of ones and zeros
+
+num_one_targets=int(np.sum(targets_all))
+zero_target_counter=0
+indices_to_remove=[]
+
+for i in range(targets_all.shape[0]):
+    if targets_all[i]== 0:
+        zero_target_counter=zero_target_counter+1
+        if zero_target_counter > num_one_targets:
+            indices_to_remove.append(i)
+                
+unscaled_inputs_equal_priors=np.delete(unscaled_inputs_all,indices_to_remove,axis=0)
+targets_equal_priors=np.delete(targets_all,indices_to_remove,axis=0)
+        
+print(unscaled_inputs_equal_priors)
+
+print(targets_equal_priors)
+
+#I standardized the inputs
+
+scaled_inputs=preprocessing.scale(unscaled_inputs_equal_priors)
+print(scaled_inputs)
+
+print(scaled_inputs.shape)
+print(targets_equal_priors.shape)
+
+#Shuffle the inputs
+
+shuffled_indices=np.arange(scaled_inputs.shape[0])
+np.random.shuffle(shuffled_indices)
+
+shuffled_inputs=scaled_inputs[shuffled_indices]
+shuffled_targets=targets_equal_priors[shuffled_indices]
+
+#Split data into train validate test in the ratio 80:10:10
+
+count_sample=scaled_inputs.shape[0]
+
+train_sample=int(0.8*count_sample)
+validatiion_sample=int(0.1*count_sample)
+test_sample=int(0.1*count_sample)
+
+
+train_inputs=shuffled_inputs[:train_sample]
+train_targets=shuffled_targets[:train_sample]
+
+validation_inputs=shuffled_inputs[train_sample:train_sample+validatiion_sample]
+validation_targets=shuffled_targets[train_sample:train_sample+validatiion_sample]
+
+test_inputs=shuffled_inputs[train_sample+validatiion_sample:]
+test_targets=shuffled_targets[train_sample+validatiion_sample:]
+
+print(train_targets.shape)
+print(validation_targets.shape)
+print(test_targets.shape)
+
+np.savez("Audiobooks_train",inputs=train_inputs,targets=train_targets)
+np.savez("Audiobooks_validation",inputs=validation_inputs,targets=validation_targets)
+np.savez("Audiobooks_test",inputs=test_inputs,targets=test_targets)
+
+#Create a class that will do batching for the algorithm and is reusable for any dataset
+
+class Audiobooks_Data_Reader():
+    
+    def __init__(self,Dataset,batch_size=None):
+        
+        #the dataset loads the train,test ,validate datasets
+        npz=np.load("Audiobooks_{0}.npz".format(Dataset))
+        
+        #two variables that take inputs and targets
+        self.inputs,self.targets=npz["inputs"].astype(np.float),npz["targets"].astype(np.int)
+        
+        #if the batch_size is not taken we are taking the input and training set as a single batch
+        if batch_size is None:
+            self.batch_size=self.inputs.shape[0]
+        else:
+            self.batch_size=batch_size
+            
+        self.current_batch=0
+        self.batch_count=self.inputs.shape[0]//self.batch_size
+    
+    def __next__(self):
+        
+        if self.current_batch >= self.batch_count:
+            self.current_batch = 0
+            raise StopIteration()
+            
+        #Sliced the data into batches and then the "next" function loads them one after the other
+        batch_slice=slice(self.current_batch*self.batch_size,(self.current_batch+1)*self.batch_size)
+        inputs_batch=self.inputs[batch_slice]
+        targets_batch=self.targets[batch_slice]
+        self.current_batch+=1
+        
+        #one hot code the targets and this is an reusable code that can me used for multiple times
+        classes_num=2
+        targets_one_hot=np.zeros((targets_batch.shape[0],classes_num))
+        targets_one_hot[range(targets_batch.shape[0]),targets_batch]=1
+        
+        #the function will return input batch and the one hot encoded targets
+        return inputs_batch,targets_one_hot
+    
+    #a method is needed for iterating over batches
+    def __iter__(self):
+        return self
+    
+   
+import tensorflow as tf
+
+#outline the model
+
+input_size=10
+output_size=2
+hidden_layer_size=50
+
+#clears all varibles there in the previous runs
+tf.reset_default_graph()
+
+#Define the input and targets in the place holder
+inputs=tf.placeholder(tf.float32,[None,input_size])
+targets=tf.placeholder(tf.int32,[None,output_size])
+
+#We calculate the weights and bias from the input layer to the output layer using Relu activation function
+
+weights1=tf.get_variable("weights1",[input_size,hidden_layer_size])
+biases1=tf.get_variable("biases1",[hidden_layer_size])
+
+output1=tf.nn.relu(tf.matmul(inputs,weights1)+biases1)
+
+weights2=tf.get_variable("weights2",[hidden_layer_size,hidden_layer_size])
+biases2=tf.get_variable("biases2",[hidden_layer_size])
+
+output2=tf.nn.relu(tf.matmul(output1,weights2)+biases2)
+
+weights3=tf.get_variable("weights3",[hidden_layer_size,output_size])
+biases3=tf.get_variable("biases3",[output_size])
+
+output=tf.matmul(output2,weights3)+biases3
+
+#We calculate the final output using softmax and optimize it using the ADAM optimizer
+
+loss=tf.nn.softmax_cross_entropy_with_logits(logits=output,labels=targets)
+mean_loss=tf.reduce_mean(loss)
+optimize=tf.train.AdamOptimizer(learning_rate=0.001).minimize(mean_loss)
+
+#We calculate the Accuracy of the model
+
+out_equal_target=tf.equal(tf.argmax(output,1),tf.argmax(targets,1))
+accuracy=tf.reduce_mean(tf.cast(out_equal_target,tf.float32))
+
+#We initialize the session and run the global variables to activate them
+
+sess=tf.InteractiveSession()
+initializer=tf.global_variables_initializer()
+sess.run(initializer)
+
+batch_size=100
+
+max_epochs=15
+prev_validation_loss=999999.9
+
+train_data=Audiobooks_Data_Reader("train",batch_size)
+validation_data=Audiobooks_Data_Reader("validation")
+
+
+
+for epoch_counter in range(max_epochs):
+    
+    #Training set
+    curr_epoch_loss=0
+    for input_batch,taget_batch in train_data:
+        #we load the inputs and targets from the training set into the input and output batch
+        _,batch_loss=sess.run([optimize,mean_loss],feed_dict={inputs:input_batch,targets:target_batch})
+        
+        curr_epoch_loss+=batch_loss
+        
+    curr_epoch_loss/=train_data.batch_count
+    validation_loss = 0
+    validation_accuracy = 0
+    #Validation set and Foward propagation does not need a loop it is a single iteration
+    for input_batch,taget_batch in validation_data:
+        validation_loss,validation_accuracy=sess.run([mean_loss,accuracy],feed_dict={inputs:input_batch,targets:target_batch})
+    
+        
+    print("Epoch: " + str(epoch_counter+1)+ 
+          ". Training_loss: " + "{0:.3f}".format(curr_epoch_loss) + 
+          ". validation_loss: " + "{0:.3f}".format(validation_loss) + 
+          ". validation_accuracy: " + "{0:.3f}".format(validation_accuracy))
+    
+    if validation_loss > prev_validation_loss:
+        break
+        
+print("End of Training")
+
+#Now we send batches to the test dataset (we only feed-foward propogate ) and calculate its accuracy.
+
+test_data=Audiobooks_Data_Reader("test")
+for input_batch,taget_batch in test_data:
+        
+    test_accuracy=sess.run([accuracy],feed_dict={inputs:input_batch,targets:target_batch})
+
+test_accuracy_percent=test_accuracy[0]*100
+
+print("Test Accuracy",test_accuracy_percent)
